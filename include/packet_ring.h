@@ -144,7 +144,6 @@ extern void enqueue_ackring(struct PacketRing *pr, struct ReportStruct *metapack
 extern struct ReportStruct *dequeue_ackring(struct PacketRing *pr);
 extern void packetring_free(struct PacketRing *pr);
 extern void free_ackring(struct PacketRing *pr);
-extern enum edgeLevel toggleLevel(enum edgeLevel level);
 #ifdef HAVE_THREAD_DEBUG
 extern int packetring_getcount(struct PacketRing *pr);
 #endif

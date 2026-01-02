@@ -84,6 +84,10 @@ static void reporter_reset_transfer_stats_server_udp(struct TransferInfo *stats)
 static void reporter_reset_transfer_stats_server_tcp(struct TransferInfo *stats);
 static void reporter_reset_transfer_stats_sum(struct TransferInfo *stats);
 
+static inline enum edgeLevel toggleLevel(enum edgeLevel level) {
+    return ((level == HIGH) ? LOW : HIGH);
+}
+
 // code for welfornd's algorithm to produce running mean/min/max/var
 static void reporter_update_mmm(struct MeanMinMaxStats *stats, double value);
 static void reporter_reset_mmm(struct MeanMinMaxStats *stats);

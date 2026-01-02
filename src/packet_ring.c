@@ -172,8 +172,6 @@ inline struct ReportStruct *packetring_dequeue(struct PacketRing *pr) {
     return packet;
 }
 
-inline enum edgeLevel toggleLevel(enum edgeLevel level) { return ((level == HIGH) ? LOW : HIGH); }
-
 inline void enqueue_ackring(struct PacketRing *pr, struct ReportStruct *metapacket) {
     packetring_enqueue(pr, metapacket);
     // Keep the latency low by signaling the consumer thread
