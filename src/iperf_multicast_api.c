@@ -178,7 +178,7 @@ static int iperf_multicast_join_v4_pi(struct thread_Settings *inSettings) {
 
 static int iperf_multicast_join_v6(struct thread_Settings *inSettings) {
 #if (HAVE_DECL_IPV6_JOIN_GROUP || HAVE_DECL_IPV6_ADD_MEMBERSHIP)
-#if HAVE_STRUCT_IPV6_MREQ
+#if (HAVE_IPV6 && HAVE_STRUCT_IPV6_MREQ)
     struct ipv6_mreq mreq;
     memcpy(&mreq.ipv6mr_multiaddr, SockAddr_get_in6_addr(&inSettings->multicast_group), sizeof(mreq.ipv6mr_multiaddr));
     mreq.ipv6mr_interface = mcast_iface(inSettings);
