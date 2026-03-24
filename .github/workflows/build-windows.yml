@@ -1,0 +1,60 @@
+name: Build Windows Binary
+
+on:
+  push:
+    branches: [wsaeconnreset-fix, main, master]
+    tags: ['v*']
+  pull_request:
+    branches: [wsaeconnreset-fix, main, master]
+
+jobs:
+  build-windows:
+    name: Cross-compile Windows x64
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install MinGW cross-compiler
+        run: sudo apt-get update && sudo apt-get install -y mingw-w64
+
+      - name: Configure for Windows x64
+        run: |
+          ./configure \
+            --host=x86_64-w64-mingw32 \
+            --disable-shared \
+            --enable-static \
+            CFLAGS="-O2 -static" \
+            LDFLAGS="-static -static-libgcc"
+
+      - name: Build
+        run: make -j$(nproc)
+
+      - name: Rename binary
+        run: |
+          VERSION=$(grep 'AC_INIT' configure.ac | grep -oP '\d+\.\d+\.\d+' | head -1)
+          cp src/iperf.exe iperf-${VERSION}-wsaeconnreset1-win64.exe
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: iperf-windows-x64
+          path: iperf-*-win64.exe
+
+      - name: Create Release
+        if: startsWith(github.ref, 'refs/tags/')
+        uses: softprops/action-gh-release@v2
+        with:
+          files: iperf-*-win64.exe
+          body: |
+            ## iperf2 Windows build with WSAECONNRESET fix
+
+            Fixes Windows UDP server becoming unusable after first client disconnects.
+
+            **Changes from upstream 2.2.1:**
+            - `WSAIoctl(SIO_UDP_CONNRESET)` applied on UDP socket creation in server and client
+            - `FATALUDPREADERR` updated to exclude `WSAECONNRESET` as a safety net
+            - `#include <mstcpip.h>` + fallback `#define SIO_UDP_CONNRESET` in headers
+
+            See [upstream bug report](https://sourceforge.net/p/iperf2/tickets/) and
+            [Microsoft KB 263823](https://learn.microsoft.com/en-us/windows/win32/winsock/winsock-ioctls).
