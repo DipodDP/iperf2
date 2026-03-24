@@ -32,10 +32,8 @@ jobs:
 
       - name: Apply WSAECONNRESET patch
         run: |
-          cp patch-repo/include/headers.h  iperf-${VERSION}/include/headers.h
-          cp patch-repo/include/util.h     iperf-${VERSION}/include/util.h
-          cp patch-repo/src/Listener.cpp   iperf-${VERSION}/src/Listener.cpp
-          cp patch-repo/src/Client.cpp     iperf-${VERSION}/src/Client.cpp
+          cd iperf-${VERSION}
+          patch -p1 < ../patch-repo/wsaeconnreset.patch
 
       - name: Configure for Windows x64
         run: |
