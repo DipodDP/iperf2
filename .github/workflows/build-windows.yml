@@ -12,29 +12,45 @@ jobs:
     name: Cross-compile Windows x64
     runs-on: ubuntu-latest
 
+    env:
+      VERSION: 2.2.1
+      PATCH_VERSION: 2.2.1-wsaeconnreset1
+
     steps:
       - uses: actions/checkout@v4
+        with:
+          path: patch-repo
 
       - name: Install MinGW cross-compiler
         run: sudo apt-get update && sudo apt-get install -y mingw-w64 g++-mingw-w64-x86-64
 
+      - name: Download iperf2 2.2.1 release tarball
+        run: |
+          curl -L "https://sourceforge.net/projects/iperf2/files/iperf-${VERSION}.tar.gz/download" \
+            -o iperf-${VERSION}.tar.gz
+          tar xzf iperf-${VERSION}.tar.gz
+
+      - name: Apply WSAECONNRESET patch
+        run: |
+          cp patch-repo/include/headers.h  iperf-${VERSION}/include/headers.h
+          cp patch-repo/include/util.h     iperf-${VERSION}/include/util.h
+          cp patch-repo/src/Listener.cpp   iperf-${VERSION}/src/Listener.cpp
+          cp patch-repo/src/Client.cpp     iperf-${VERSION}/src/Client.cpp
+
       - name: Configure for Windows x64
         run: |
+          cd iperf-${VERSION}
           mkdir build-win64 && cd build-win64
           ../configure \
             --host=x86_64-w64-mingw32 \
-            CC=x86_64-w64-mingw32-g++ \
-            CXX=x86_64-w64-mingw32-g++ \
             CFLAGS="-O2" \
             CXXFLAGS="-O2"
 
       - name: Build
-        run: make -j$(nproc) -C build-win64
+        run: make -j$(nproc) -C iperf-${VERSION}/build-win64
 
-      - name: Rename binary
-        run: |
-          VERSION=$(grep 'AC_INIT' configure.ac | grep -oP '\d+\.\d+\.\d+' | head -1)
-          cp build-win64/src/iperf.exe iperf-${VERSION}-wsaeconnreset1-win64.exe
+      - name: Collect binary
+        run: cp iperf-${VERSION}/build-win64/src/iperf.exe iperf-${PATCH_VERSION}-win64.exe
 
       - name: Upload artifact
         uses: actions/upload-artifact@v4
@@ -48,11 +64,11 @@ jobs:
         with:
           files: iperf-*-win64.exe
           body: |
-            ## iperf2 Windows build with WSAECONNRESET fix
+            ## iperf2 ${{ env.VERSION }} Windows build with WSAECONNRESET fix
 
             Fixes Windows UDP server becoming unusable after first client disconnects.
 
-            **Changes from upstream 2.2.1:**
+            **Changes from upstream ${{ env.VERSION }}:**
             - `WSAIoctl(SIO_UDP_CONNRESET)` applied on UDP socket creation in server and client
             - `FATALUDPREADERR` updated to exclude `WSAECONNRESET` as a safety net
             - `#include <mstcpip.h>` + fallback `#define SIO_UDP_CONNRESET` in headers
