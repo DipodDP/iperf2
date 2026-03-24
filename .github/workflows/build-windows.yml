@@ -7,6 +7,9 @@ on:
   pull_request:
     branches: [wsaeconnreset-fix, main, master]
 
+permissions:
+  contents: write
+
 jobs:
   build-windows:
     name: Cross-compile Windows x64
