@@ -43,8 +43,8 @@ jobs:
           mkdir build-win64 && cd build-win64
           ../configure \
             --host=x86_64-w64-mingw32 \
-            CFLAGS="-O2" \
-            CXXFLAGS="-O2"
+            CFLAGS="-O2 -DHAVE_CLOCK_GETTIME=1" \
+            CXXFLAGS="-O2 -DHAVE_CLOCK_GETTIME=1"
 
       - name: Build
         run: make -j$(nproc) -C iperf-${VERSION}/build-win64
