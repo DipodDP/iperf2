@@ -466,6 +466,21 @@ bool Listener::my_listen() {
             WARN_errno(ListenSocket == INVALID_SOCKET, "socket");
         }
         mSettings->mSock = ListenSocket;
+#ifdef WIN32
+        if (isUDP(mSettings)) {
+            /* Disable Windows WSAECONNRESET on UDP sockets (KB 263823).
+             * Without this fix, an ICMP "Port Unreachable" reply from a
+             * disconnected client is delivered as WSAECONNRESET (error 10054)
+             * on the next recvfrom() call. iperf2's FATALUDPREADERR treats
+             * this as fatal, causing the server thread to exit and the socket
+             * to be permanently poisoned for all subsequent clients.
+             * Linux and macOS silently discard these ICMP errors on UDP. */
+            BOOL bNewBehavior = FALSE;
+            DWORD dwBytesReturned = 0;
+            WSAIoctl(ListenSocket, SIO_UDP_CONNRESET, &bNewBehavior,
+                     sizeof(bNewBehavior), NULL, 0, &dwBytesReturned, NULL, NULL);
+        }
+#endif
         SetSocketOptions(mSettings);
         SetSocketBindToDeviceIfNeeded(mSettings);
         rc = SOCKET_ERROR;

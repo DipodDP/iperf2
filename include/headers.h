@@ -180,7 +180,15 @@ typedef bool _Bool;
 #include <windows.h>
 #include <winsock2.h>
 #include <ws2tcpip.h>
+#include <mstcpip.h>
 #include <process.h>
+
+/* SIO_UDP_CONNRESET disables ICMP "Port Unreachable" injection on UDP
+ * sockets (Microsoft KB 263823). Define it here for toolchains that do
+ * not expose it via mstcpip.h or ws2tcpip.h (available since WinXP). */
+#ifndef SIO_UDP_CONNRESET
+#define SIO_UDP_CONNRESET _WSAIOW(IOC_VENDOR, 12)
+#endif
 
 /* define EINTR, just to help compile; it isn't useful */
 #ifndef EINTR

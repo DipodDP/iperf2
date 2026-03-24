@@ -279,7 +279,7 @@ void redirect(const char *inOutputFileName);
 // Define fatal and nonfatal write errors
 #ifdef WIN32
 #define FATALTCPREADERR(errno) (WSAGetLastError() != WSAEWOULDBLOCK)
-#define FATALUDPREADERR(errno) (((errno = WSAGetLastError()) != WSAEWOULDBLOCK))
+#define FATALUDPREADERR(errno) (((errno = WSAGetLastError()) != WSAEWOULDBLOCK) && (errno != WSAECONNRESET))
 #define FATALTCPWRITERR(errno) ((errno = WSAGetLastError()) != WSAETIMEDOUT)
 #define NONFATALTCPWRITERR(errno) ((errno = WSAGetLastError()) == WSAETIMEDOUT)
 #define FATALUDPWRITERR(errno) (((errno = WSAGetLastError()) != WSAETIMEDOUT) && (errno != WSAECONNREFUSED))

@@ -151,6 +151,19 @@ void Client::mySockInit(void) {
     WARN_errno(mySocket == INVALID_SOCKET, "socket");
     // Socket is carried both by the object and the thread
     mSettings->mSock = mySocket;
+#ifdef WIN32
+    if (isUDP(mSettings)) {
+        /* Disable Windows WSAECONNRESET on UDP sockets (KB 263823).
+         * Without this fix, an ICMP "Port Unreachable" reply from a
+         * disconnected peer is delivered as WSAECONNRESET (error 10054)
+         * on the next recvfrom() call, poisoning the socket.
+         * Linux and macOS silently discard these ICMP errors on UDP. */
+        BOOL bNewBehavior = FALSE;
+        DWORD dwBytesReturned = 0;
+        WSAIoctl(mySocket, SIO_UDP_CONNRESET, &bNewBehavior,
+                 sizeof(bNewBehavior), NULL, 0, &dwBytesReturned, NULL, NULL);
+    }
+#endif
     SetSocketOptions(mSettings);
     SockAddr_localAddr(mSettings);
     SockAddr_remoteAddr(mSettings);
