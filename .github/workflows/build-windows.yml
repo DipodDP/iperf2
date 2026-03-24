@@ -23,6 +23,8 @@ jobs:
           mkdir build-win64 && cd build-win64
           ../configure \
             --host=x86_64-w64-mingw32 \
+            CC=x86_64-w64-mingw32-g++ \
+            CXX=x86_64-w64-mingw32-g++ \
             CFLAGS="-O2" \
             CXXFLAGS="-O2"
 
